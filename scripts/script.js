@@ -120,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function(){
         })
         modal.addEventListener('click', (event) => {
             const target = event.target;
-            console.dir(keyEsc);
             if (target.classList.contains('modal__close')) {
                 modal.classList.remove('open');
             } else if (target.classList.contains('modal')) {
