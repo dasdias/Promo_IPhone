@@ -1,6 +1,22 @@
 document.addEventListener('DOMContentLoaded', function(){
     'use strict';
 
+    const getData = (url, callback) => {
+        const request = new XMLHttpRequest();
+        request.open('GET', url)
+        request.addEventListener('readystatechange', () =>{
+            if (request.readyState !== 4) return;
+            if (request.status === 200) {
+                const response = JSON.parse(request.response);
+                callback(response);
+            } else {
+                console.error(new Error('Ошибка: ' + request.status));
+            }
+        });
+        request.send();
+    };
+   
+
     const tabs = () => {
         const cardDetailChangeElems = document.querySelectorAll('.card-detail__change');
         const cardDetailsTitleElem = document.querySelector('.card-details__title');
@@ -49,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         })
 
-  
 
     }
 
@@ -94,41 +109,92 @@ document.addEventListener('DOMContentLoaded', function(){
         })
     }
 
-    const modal = () => {
-        const allButton = document.querySelectorAll('.button');
+    const modal = (event) => {
         // const cardDetailsButtonBuy = document.querySelector('.card-details__button_buy');
+        const cardDetailsButtonDelivery = document.querySelector('.card-details__button_delivery');
         const modal = document.querySelector('.modal');
         const modalTitle = document.querySelector('.modal__title');
         const modalSubtitle = document.querySelector('.modal__subtitle');
-        
+        const modalGoods = document.querySelector('.modal_goods');
+        const allButton = document.querySelectorAll('.button');
+
+        const openModal = () => {
+            document.addEventListener('keydown', escapeHandler);
+            modal.classList.add('open')
+        }
+        const closeModal = () => {
+            modal.classList.remove('open');
+            document.removeEventListener('keydown', escapeHandler);
+        }
+        const escapeHandler = event  => {
+            const keyEsc = event.code;
+            if (keyEsc === 'Escape') {
+                closeModal()
+            }
+        }
+
         allButton.forEach( (btn) => {
             
             btn.addEventListener('click', (event) => {
                 const cardDetailsTitle = document.querySelector('.card-details__title').textContent;
                 const target = event.target;
-                modalTitle.textContent = cardDetailsTitle;
+                const goods = target.closest('.cross-sell__item');
+                if (goods) {
+                    const crossSellTitle = goods.querySelector('.cross-sell__title');
+                    modalGoods.value =  crossSellTitle.textContent;
+                    modalTitle.textContent =  crossSellTitle.textContent;
+                    
+                } else {
+                    modalGoods.value =  cardDetailsTitle;
+                    modalTitle.textContent =  cardDetailsTitle;
+                }
                 modalSubtitle.textContent = target.dataset.btn;
-                modal.classList.add('open')
+
+                openModal();
             });
         
         })
-        document.addEventListener('keydown', (event) => {
-            const keyEsc = event.code;
-            if (keyEsc === 'Escape') {
-                modal.classList.remove('open');
-            }
-        })
+    
+        // Закрываем по Esc
+        
         modal.addEventListener('click', (event) => {
             const target = event.target;
             if (target.classList.contains('modal__close')) {
-                modal.classList.remove('open');
+                closeModal()
             } else if (target.classList.contains('modal')) {
-                modal.classList.remove('open');
+                closeModal()
             }
         })
+        cardDetailsButtonDelivery.addEventListener('click', openModal )
+    }
+
+    const renderCrossSell = () => {
+        const crossSellList = document.querySelector('.cross-sell__list');
+        
+        const createCrossSellItem = (good) => {
+            const liItem = document.createElement('li');
+            liItem.innerHTML = `
+            <article class="cross-sell__item">
+                <img class="cross-sell__image" src="${good.photo}" alt="${good.name}">
+                <h3 class="cross-sell__title">${good.name}</h3>
+                <p class="cross-sell__price">${good.price}</p>
+                <button type="button" data-btn="Оплата" class="button button_buy cross-sell__button">Купить</button>
+            </article>
+            `;
+            return liItem;
+        }
+
+        const createCrossSellList = (goods) => {
+            goods.forEach( item => {
+                crossSellList.append(createCrossSellItem(item))
+                modal()
+            });
+        };
+        getData('./cross-sell-dbase/dbase.json', createCrossSellList);
     }
 
     accordion();
     tabs();
     modal();
+    renderCrossSell();
 })
