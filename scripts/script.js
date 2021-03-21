@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const cardImageItemElem = document.querySelector('.card__image_item');
         const cardDetailsPriceElem = document.querySelector('.card-details__price');
         const descriptionMemoryElem = document.querySelector('.description__memory');
-
+        
         const data = [
             {
                 name: 'Смартфон Apple iPhone 12 Pro 64GB Graphite',
@@ -170,25 +170,36 @@ document.addEventListener('DOMContentLoaded', function(){
 
     const renderCrossSell = () => {
         const crossSellList = document.querySelector('.cross-sell__list');
+        const allGoods = [];
         
+        const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+
         const createCrossSellItem = (good) => {
+            const { photo, name, price} = good; 
+
             const liItem = document.createElement('li');
             liItem.innerHTML = `
             <article class="cross-sell__item">
                 <img class="cross-sell__image" src="${good.photo}" alt="${good.name}">
                 <h3 class="cross-sell__title">${good.name}</h3>
-                <p class="cross-sell__price">${good.price}</p>
+                <p class="cross-sell__price">${good.price}₽</p>
                 <button type="button" data-btn="Оплата" class="button button_buy cross-sell__button">Купить</button>
             </article>
             `;
             return liItem;
         }
 
-        const createCrossSellList = (goods) => {
-            goods.forEach( item => {
+        const createCrossSellList = (goods = []) => {
+            allGoods.push(...goods);
+            crossSellList.textContent = ''
+            const shuffleGoogs = shuffle(allGoods);
+            const fourItem = shuffleGoogs.slice(0, 4);
+
+            fourItem.forEach( item => {
                 crossSellList.append(createCrossSellItem(item))
                 modal()
             });
+            setTimeout(createCrossSellList, 5000)
         };
         getData('./cross-sell-dbase/dbase.json', createCrossSellList);
     }
@@ -197,4 +208,5 @@ document.addEventListener('DOMContentLoaded', function(){
     tabs();
     modal();
     renderCrossSell();
+    amenu('.header__menu', '.header-menu__list', '.header-menu__item', '.header-menu__burger');
 })
